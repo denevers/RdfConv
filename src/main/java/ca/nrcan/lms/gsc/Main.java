@@ -1,5 +1,7 @@
 package ca.nrcan.lms.gsc;
 
+import java.io.File;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -24,7 +26,11 @@ public class Main {
 	 * @param args
 	 */
 	public static void main(String[] args) {
+		//TODO, rethink this. original code was for a single action
 		Options options = new Options();
+		options.addOption("a",true,"action");
+		options.addOption("l",true,"Left model");
+		options.addOption("r",true,"Right model");
 		options.addOption("i",true,"Input file");
 		options.addOption("f",true,"Input format");
 		options.addOption("t",true,"Output format");
@@ -33,6 +39,14 @@ public class Main {
 		CommandLineParser parser = new DefaultParser();
 		try {
 			CommandLine cmd = parser.parse( options, args);
+			String action= cmd.getOptionValue("a");
+			// convert or compare, convert is default
+			if ("compare".equals(action)) 
+			{
+				compare(cmd);
+				return;
+			}
+			
 			String inputFile = cmd.getOptionValue("i");
 			String fromFormat = cmd.getOptionValue("f");  // might be null
 			String toFormat = cmd.getOptionValue("t");
@@ -87,6 +101,23 @@ public class Main {
 		if ("N3".equalsIgnoreCase(s)) return Lang.N3;
 		if ("RDF/JSON".equalsIgnoreCase(s)) return Lang.RDFJSON;
 		return null;
+	}
+	
+	// perform a compare of left and right model
+	public static void compare(CommandLine cmd)
+	{
+		String l = cmd.getOptionValue("l");
+		String r = cmd.getOptionValue("r");
+		String t = cmd.getOptionValue("t","TTL"); // output format
+		if (l == null || r == null )
+		{
+			System.out.println("Must provide a \"left\" model and a \"right\" model");
+			return;
+		}
+		File fl = new File(l);
+		File fr = new File(r);
+		CompareOntologies.compare(fl, fr, getLang(t));
+		
 	}
 
 }
